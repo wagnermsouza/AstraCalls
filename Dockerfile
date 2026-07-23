@@ -45,6 +45,6 @@ RUN ldconfig
 COPY --from=server /wacalls /usr/local/bin/wacalls
 COPY --from=client /app/client/dist /app/client/dist
 WORKDIR /app
-EXPOSE 8080 50000
+EXPOSE 8080/tcp 50000/udp
 ENTRYPOINT ["wacalls"]
 CMD ["-addr", ":8080", "-static", "/app/client/dist"]
