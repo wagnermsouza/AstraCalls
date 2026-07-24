@@ -1,38 +1,21 @@
 # --- Estágio 1: Build ---
 FROM node:20-alpine AS builder
 
-# 1. Define a raiz de trabalho e copia TODOS os arquivos do repositório
 WORKDIR /app
 COPY . .
 
-# 2. Entra na pasta client (onde está o package.json de fato)
+# Entra na pasta do cliente e executa o build
 WORKDIR /app/client
-
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# 3. Instala e gera o build do Next.js
 RUN npm install
 RUN npm run build
 
-# --- Estágio 2: Execução ---
-FROM node:20-alpine AS runner
-WORKDIR /app
+# --- Estágio 2: Servidor de Produção (Nginx) ---
+FROM nginx:alpine AS runner
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Copia os arquivos estáticos gerados pelo Vite (pasta dist) para o Nginx
+COPY --from=builder /app/client/dist /usr/share/nginx/html
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Expõe a porta padrão do Nginx
+EXPOSE 80
 
-# Copia os arquivos compilados de dentro da pasta client
-COPY --from=builder /app/client/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/client/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/client/.next/static ./.next/static
-
-USER nextjs
-
-EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-CMD ["node", "server.js"]
+CMD ["nginx", "-g", "daemon off;"]
