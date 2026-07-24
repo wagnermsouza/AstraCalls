@@ -34,7 +34,7 @@ COPY --from=go-builder /app/server /app/server
 # Permissão de execução para o binário Go
 RUN chmod +x /app/server
 
-# Configuração do Nginx apontando para o Go na 8088
+# Configuração do Nginx com remoção do prefixo /api na barra do proxy_pass
 RUN echo 'server { \
     listen 80; \
     location / { \
