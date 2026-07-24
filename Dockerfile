@@ -34,7 +34,7 @@ COPY --from=go-builder /app/server /app/server
 # Permissão de execução para o binário Go
 RUN chmod +x /app/server
 
-# Configuração do Nginx com remoção do prefixo /api na barra do proxy_pass
+# Configuração do Nginx mantendo o prefixo /api para o backend Go
 RUN echo 'server { \
     listen 80; \
     location / { \
@@ -43,7 +43,7 @@ RUN echo 'server { \
         try_files $uri $uri/ /index.html; \
     } \
     location /api/ { \
-        proxy_pass http://127.0.0.1:8088/; \
+        proxy_pass http://127.0.0.1:8088; \
         proxy_http_version 1.1; \
         proxy_set_header Upgrade $http_upgrade; \
         proxy_set_header Connection "upgrade"; \
