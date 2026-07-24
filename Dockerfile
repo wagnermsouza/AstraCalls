@@ -1,8 +1,18 @@
 # --- Estágio 1: Build da API Go ---
 FROM golang:1.22-alpine AS go-builder
 WORKDIR /app
-COPY go.mod go.sum ./
+
+# Define o proxy oficial do Go
+ENV GOPROXY=https://proxy.golang.org,direct
+
+# Copia os arquivos de dependência
+COPY go.mod ./
+# Usa wildcard (*) no go.sum para não falhar caso o go.sum não exista no repositório
+COPY go.mod go.s[u]m ./
+
+# Baixa as dependências
 RUN go mod download
+
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o server .
 
