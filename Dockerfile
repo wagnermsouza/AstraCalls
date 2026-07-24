@@ -2,17 +2,14 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copia arquivos de dependências
-COPY package*.json ./
-RUN npm install
-
-# Copia o restante do código
+# Copia todos os arquivos do projeto primeiro
 COPY . .
 
-# Desabilita telemetria do Next.js durante o build
+# Desabilita telemetria do Next.js
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Compila o projeto
+# Instala as dependências e gera o build
+RUN npm install
 RUN npm run build
 
 # --- Estágio 2: Execução ---
@@ -26,7 +23,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copia apenas o necessário para rodar
+# Copia os arquivos gerados no build
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
