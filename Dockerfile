@@ -1,6 +1,6 @@
 # --- Estágio 1: Build ---
 FROM node:20-alpine AS builder
-WORKDIR /client
+WORKDIR /app/client
 
 # Copia todos os arquivos do projeto primeiro
 COPY . .
@@ -14,7 +14,7 @@ RUN npm run build
 
 # --- Estágio 2: Execução ---
 FROM node:20-alpine AS runner
-WORKDIR /app
+WORKDIR /app/client
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
