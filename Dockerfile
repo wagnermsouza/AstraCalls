@@ -29,8 +29,7 @@ RUN echo 'server { \
         try_files $uri $uri/ /index.html; \
     } \
 }' > /etc/nginx/conf.d/default.conf
-    location /api/ { proxy_pass http://localhost:3000; }
-
+    location /api/ { proxy_pass http://localhost:PORTA_DO_GO; }
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
