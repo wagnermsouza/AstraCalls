@@ -14,7 +14,7 @@ COPY go.mod go.s[u]m ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./server
 
 # --- Estágio 2: Build do Frontend React/Vite ---
 FROM node:20-alpine AS node-builder
