@@ -32,7 +32,7 @@ func envStr(key, def string) string {
 }
 
 func main() {
-	addr := flag.String("addr", ":8080", "HTTP listen address")
+	addr := flag.String("addr", ":8088", "HTTP listen address")
 	// Storage: Postgres (1 banco por sessão, estilo WAHA). URL de manutenção em
 	// WACALLS_PG_URL (ex.: postgres://user:pass@host:5432/postgres?sslmode=disable);
 	// o usuário precisa de permissão CREATE DATABASE. WACALLS_PG_NAMESPACE = prefixo
