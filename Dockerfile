@@ -1,5 +1,5 @@
 # --- Estágio 1: Build da API Go ---
-FROM golang:1.22-alpine AS go-builder
+FROM golang:1.26.4-alpine AS go-builder
 WORKDIR /app
 
 # Define o proxy oficial do Go
