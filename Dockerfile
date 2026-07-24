@@ -1,32 +1,33 @@
 # --- Estágio 1: Build ---
 FROM node:20-alpine AS builder
-WORKDIR /app/client
 
-# Copia todos os arquivos do projeto primeiro
+# 1. Define a raiz de trabalho e copia TODOS os arquivos do repositório
+WORKDIR /app
 COPY . .
 
-# Desabilita telemetria do Next.js
+# 2. Entra na pasta client (onde está o package.json de fato)
+WORKDIR /app/client
+
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Instala as dependências e gera o build
+# 3. Instala e gera o build do Next.js
 RUN npm install
 RUN npm run build
 
 # --- Estágio 2: Execução ---
 FROM node:20-alpine AS runner
-WORKDIR /app/client
+WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Cria usuário sem privilégios de root por segurança
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copia os arquivos gerados no build
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copia os arquivos compilados de dentro da pasta client
+COPY --from=builder /app/client/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/client/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/client/.next/static ./.next/static
 
 USER nextjs
 
