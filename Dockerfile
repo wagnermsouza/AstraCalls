@@ -1,6 +1,9 @@
 # --- Estágio 1: Build da API Go ---
-FROM golang:1.26.4 AS go-builder
+FROM golang:1.26.4-alpine AS go-builder
 WORKDIR /app
+
+# Instala ferramentas e bibliotecas C necessárias para CGO no Alpine
+RUN apk add --no-cache gcc musl-dev
 
 # Define o proxy oficial do Go
 ENV GOPROXY=https://proxy.golang.org,direct
@@ -14,7 +17,9 @@ COPY go.mod go.s[u]m ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/server
+
+# Habilita CGO e adiciona a tag 'mlow' conforme solicitado pelos logs
+RUN CGO_ENABLED=1 GOOS=linux go build -tags mlow -o server ./cmd/server
 
 # --- Estágio 2: Build do Frontend React/Vite ---
 FROM node:20-alpine AS node-builder
