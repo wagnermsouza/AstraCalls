@@ -41,12 +41,13 @@ COPY --from=go-builder /app/server /app/server
 # Copia a biblioteca libopus_mlow.so para a pasta de bibliotecas do sistema (/usr/lib)
 COPY --from=go-builder /app/native/libopus_mlow.so /usr/lib/libopus_mlow.so
 
-# Permissão de execução para o binário Go e atualiza o linker
+# Permissão de execução para o binário Go
 RUN chmod +x /app/server
 
-# Configuração do Nginx mantendo o prefixo /api para o backend Go
+# Configuração do Nginx com suporte completo a WebSockets e Timeouts estendidos
 RUN echo 'server { \
     listen 80; \
+    client_max_body_size 100M; \
     location / { \
         root /usr/share/nginx/html; \
         index index.html index.htm; \
@@ -56,11 +57,14 @@ RUN echo 'server { \
         proxy_pass http://127.0.0.1:8088; \
         proxy_http_version 1.1; \
         proxy_set_header Upgrade $http_upgrade; \
-        proxy_set_header Connection "upgrade"; \
+        proxy_set_header Connection "Upgrade"; \
         proxy_set_header Host $host; \
         proxy_set_header X-Real-IP $remote_addr; \
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
         proxy_set_header X-Forwarded-Proto $scheme; \
+        proxy_read_timeout 86400s; \
+        proxy_send_timeout 86400s; \
+        proxy_connect_timeout 60s; \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
