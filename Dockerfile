@@ -1,16 +1,15 @@
-# --- Estágio 1: Build da API Go (usando Debian por causa da libopus_mlow.so pré-compilada em glibc) ---
+# --- Estágio 1: Build da API Go ---
 FROM golang:1.26-bookworm AS go-builder
 WORKDIR /app
 
 # Instala o gcc/g++ essencial no Debian
-RUN apt-get update && apt-get install -y gcc g++ libc6-dev
+RUN apt-get update && apt-get install -y gcc g++ libc6-dev libopus-dev
 
 # Define o proxy oficial do Go
 ENV GOPROXY=https://proxy.golang.org,direct
 
 # Copia os arquivos de dependência
 COPY go.mod ./
-# Usa wildcard (*) no go.sum para não falhar caso o go.sum não exista no repositório
 COPY go.mod go.s[u]m ./
 
 # Baixa as dependências
@@ -32,18 +31,17 @@ RUN npm run build
 # --- Estágio 3: Container Final ---
 FROM nginx:alpine
 
-# Instala suporte a binários compilados com glibc no Alpine
-RUN apk add --no-cache gcompat libc6-compat libstdc++
+# Instala suporte a glibc e a biblioteca libopus nativa do Alpine
+RUN apk add --no-cache gcompat libc6-compat libstdc++ opus
 
 # Copia arquivos do frontend e o binário em Go
 COPY --from=node-builder /app/client/dist /usr/share/nginx/html
 COPY --from=go-builder /app/server /app/server
 
-# Copia também a biblioteca nativa .so do Go para garantir que ela exista no container final
-# Ajuste o caminho de origem caso sua libopus_mlow.so esteja em outro lugar no repositório
-COPY --from=go-builder /app/native /app/native
+# Copia a biblioteca libopus_mlow.so para a pasta de bibliotecas do sistema (/usr/lib)
+COPY --from=go-builder /app/native/libopus_mlow.so /usr/lib/libopus_mlow.so
 
-# Permissão de execução para o binário Go
+# Permissão de execução para o binário Go e atualiza o linker
 RUN chmod +x /app/server
 
 # Configuração do Nginx mantendo o prefixo /api para o backend Go
