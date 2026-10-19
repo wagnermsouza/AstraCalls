@@ -1,33 +1,3 @@
-# --- Estágio 1: Build da API Go ---
-FROM golang:1.26-bookworm AS go-builder
-WORKDIR /app
-
-# Instala o gcc/g++ essencial no Debian
-RUN apt-get update && apt-get install -y gcc g++ libc6-dev libopus-dev
-
-# Define o proxy oficial do Go
-ENV GOPROXY=https://proxy.golang.org,direct
-
-# Copia os arquivos de dependência
-COPY go.mod ./
-COPY go.mod go.s[u]m ./
-
-# Baixa as dependências
-RUN go mod download
-
-COPY . .
-
-# Habilita CGO e compila com a tag mlow
-RUN CGO_ENABLED=1 GOOS=linux go build -tags mlow -o server ./cmd/server
-
-# --- Estágio 2: Build do Frontend React/Vite ---
-FROM node:20-alpine AS node-builder
-WORKDIR /app
-COPY . .
-WORKDIR /app/client
-RUN npm install
-RUN npm run build
-
 # --- Estágio 3: Container Final ---
 FROM nginx:alpine
 
@@ -70,5 +40,5 @@ RUN echo 'server { \
 
 EXPOSE 80
 
-# Força a inicialização do Go e depois do Nginx
-ENTRYPOINT ["/bin/sh", "-c", "/app/server & nginx -g 'daemon off;'"]
+# Força a inicialização do Go passando o IP público explicitamente e depois o Nginx
+ENTRYPOINT ["/bin/sh", "-c", "/app/server -public-ip 62.169.22.148 & nginx -g 'daemon off;'"]
