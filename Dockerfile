@@ -34,7 +34,7 @@ COPY --from=go-builder /app/native/libopus_mlow.so /usr/lib/libopus_mlow.so
 
 RUN chmod +x /app/server
 
-# Configuração do Nginx com reescrita do IP do candidato ICE
+# Nginx reescrevendo o candidato ICE no SDP (IP e Porta)
 RUN echo 'server { \
     listen 80; \
     client_max_body_size 100M; \
@@ -63,5 +63,4 @@ RUN echo 'server { \
 
 EXPOSE 80
 
-# Inicialização supervisionada do Go
 ENTRYPOINT ["/bin/sh", "-c", "while true; do /app/server; sleep 2; done & nginx -g 'daemon off;'"]
