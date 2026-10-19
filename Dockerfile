@@ -1,28 +1,3 @@
-# --- Estágio 1: Build da API Go ---
-FROM golang:1.26-bookworm AS go-builder
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y gcc g++ libc6-dev libopus-dev
-
-ENV GOPROXY=https://proxy.golang.org,direct
-
-COPY go.mod ./
-COPY go.mod go.s[u]m ./
-
-RUN go mod download
-
-COPY . .
-
-RUN CGO_ENABLED=1 GOOS=linux go build -tags mlow -o server ./cmd/server
-
-# --- Estágio 2: Build do Frontend React/Vite ---
-FROM node:20-alpine AS node-builder
-WORKDIR /app
-COPY . .
-WORKDIR /app/client
-RUN npm install
-RUN npm run build
-
 # --- Estágio 3: Container Final ---
 FROM nginx:alpine
 
@@ -34,7 +9,7 @@ COPY --from=go-builder /app/native/libopus_mlow.so /usr/lib/libopus_mlow.so
 
 RUN chmod +x /app/server
 
-# Nginx reescrevendo o candidato ICE no SDP (IP e Porta)
+# Nginx reescrevendo o IP interno 10.0.5.3 e mapeando a porta estática
 RUN echo 'server { \
     listen 80; \
     client_max_body_size 100M; \
